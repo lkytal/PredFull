@@ -152,7 +152,7 @@ def res(x1, layers, kernel=(3,), act='relu', identity=True, se=0, **kws):
 
     return v1
 
-def build(act=lambda : 'relu'):
+def build(act=lambda : 'elu'):
     inp = Input(shape=(max_in, x_dim))
     v1 = inp
     outlayers = []
@@ -187,6 +187,7 @@ pm = build()
 pm.compile(optimizer=k.optimizers.adam(lr=0.0003), loss='cosine')
 pm.load_weights('pm.hdf5')
 
+def f2(x): return "{0:.4f}".format(x)
 def f4(x): return "{0:.4f}".format(x)
 
 def tomgf(sp, y):
@@ -199,13 +200,14 @@ def tomgf(sp, y):
 
     y = y ** 4 # re
     mzs, its = sparse(imz, y, th=0.001)
-    peaks = [f"{f4(mz)} {f4(it * 1000)}" for mz, it in zip(mzs, its)]
+    peaks = [f"{f2(mz)} {f4(it * 1000)}" for mz, it in zip(mzs, its)]
 
     return head + '\n'.join(peaks) + '\nEND IONS'
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--input', type=str, help='input file path', default='example.tsv')
 parser.add_argument('--output', type=str, help='output file path', default='example.mgf')
+parser.add_argument('--weight', type=str, help='weight file path', default='pm.hdf5')
 
 args = parser.parse_args()
 
