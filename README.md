@@ -14,6 +14,8 @@ Based on the structure of the residual convolutional networks. Current precision
 
 ### Required Packages
 
+Recommend to install dependency via [Anaconda](https://www.anaconda.com/distribution/)
+
 * Keras >= 2.2.4
 * Tensorflow >= 1.12
 * Pandas >= 0.20
@@ -36,7 +38,7 @@ Apparently, 'Peptide' and 'Charge' columns mean what it says. The 'Type' must be
 
 Simply run:
 
-`python predfull.py --input .\example.tsv --output .\example.mgf`
+`python predfull.py --input .\example.tsv --weights pm.hdf5 --output .\example.mgf`
 
 The output file is in MGF format
 
