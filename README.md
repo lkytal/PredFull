@@ -1,5 +1,7 @@
 # PredFull
 
+__Visit [http://predfull.com/](http://predfull.com/) to try online prediction__
+
 Model for `Full-Spectrum Prediction of Peptides Tandem Mass Spectra using Deep Neural Network`
 
 Kaiyuan Liu, Sujun Li, Lei Wang, Yuzhen Ye, Haixu Tang
@@ -41,6 +43,10 @@ Simply run:
 `python predfull.py --input .\example.tsv --weights pm.hdf5 --output .\example.mgf`
 
 The output file is in MGF format
+
+* --input : the input file
+* --weights : the weight file
+* --output : the output path
 
 ## Prediction Examples
 
