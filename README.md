@@ -2,7 +2,7 @@
 
 __Visit [http://predfull.com/](http://predfull.com/) to try online prediction__
 
-Model for `Full-Spectrum Prediction of Peptides Tandem Mass Spectra using Deep Neural Network`
+Model for [`Full-Spectrum Prediction of Peptides Tandem Mass Spectra using Deep Neural Network`](https://pubs.acs.org/doi/10.1021/acs.analchem.9b04867)
 
 Kaiyuan Liu, Sujun Li, Lei Wang, Yuzhen Ye, Haixu Tang
 
