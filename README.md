@@ -20,6 +20,13 @@ Based on the structure of the residual convolutional networks. Current precision
 
 ## How to use
 
+### Important Notes
+
+* This model support only UNMODIFIED peptides (for now, at least)
+* This model assume a FIXED carbamidomethyl on C
+* The length of input peptides are limited to =< 30
+* The prediction will NOT output peaks with M/z > 2000
+
 ### Required Packages
 
 Recommend to install dependency via [Anaconda](https://www.anaconda.com/distribution/)

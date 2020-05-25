@@ -2,6 +2,7 @@ import argparse
 import numpy as np
 import pandas as pd
 import math
+from pyteomics import mgf, mass
 
 import tensorflow.keras as k
 from tensorflow.keras import backend as K
@@ -10,9 +11,6 @@ from tensorflow.keras.layers import Conv1D, MaxPooling1D, Dense, Add, Flatten, A
 from tensorflow.keras import Model, Input
 
 from coord_tf import CoordinateChannel2D, CoordinateChannel1D
-
-from pyteomics import mgf, mass, mzid
-cmass = mass
 
 ### Parameters
 
@@ -33,6 +31,8 @@ max_len = 30
 max_in = max_len + 2
 max_charge = 4
 
+# help functions
+
 def pre(): return precision
 def mz2pos(mz, pre=pre()): return int(round((mz - low) / pre))
 def pos2mz(pos, pre=pre()): return pos * pre + low
@@ -42,7 +42,7 @@ def asnp32(x): return np.asarray(x, dtype='float32')
 
 
 def fastmass(pep, ion_type, charge):
-    return cmass.fast_mass(pep, ion_type=ion_type, charge=charge) + 57.021 * pep.count('C') / charge
+    return mass.fast_mass(pep, ion_type=ion_type, charge=charge) + 57.021 * pep.count('C') / charge
 
 def normalize(it):
     it[it < 0] = 0
@@ -111,9 +111,10 @@ def embed(sp, mass_scale = max_mz, out=None, ignore=False, pep=None):
 
     return em
 
-def f2(x): return "{0:.4f}".format(x)
+def f2(x): return "{0:.2f}".format(x)
 def f4(x): return "{0:.4f}".format(x)
 
+# function that transfer predictions into mgf format
 def tomgf(sp, y):
     head = ("BEGIN IONS\n"
         f"Title={sp['pep']}\n"
@@ -139,11 +140,11 @@ K.clear_session()
 pm = k.models.load_model(args.model, compile=0)
 pm.compile(optimizer=k.optimizers.Adam(lr=0.0003), loss='cosine')
 
-inputs = []
-
 # type: 0 unknown, 1 cid, 2 etd, 3 hcd
 types = {'HCD': 3, 'ETD': 2}
 
+# read inputs
+inputs = []
 for item in pd.read_csv(args.input, sep='\t').itertuples():
     if len(item.Peptide) <= max_len:
         inputs.append({'pep': item.Peptide, 'charge': item.Charge, 'type': types[item.Type],
