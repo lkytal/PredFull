@@ -2,9 +2,15 @@
 
 __Visit [http://predfull.com/](http://predfull.com/) to try online prediction__
 
-Model for [`Full-Spectrum Prediction of Peptides Tandem Mass Spectra using Deep Neural Network`](https://pubs.acs.org/doi/10.1021/acs.analchem.9b04867)
+This work was published on Analytical Chemistry: [`Full-Spectrum Prediction of Peptides Tandem Mass Spectra using Deep Neural Network`](https://pubs.acs.org/doi/10.1021/acs.analchem.9b04867)
 
 Kaiyuan Liu, Sujun Li, Lei Wang, Yuzhen Ye, Haixu Tang
+
+## Update History
+
+* 2020.05.25: Support predicting non-tryptic peptides
+* 2019.09.01: First version
+
 
 ## Method
 
@@ -18,8 +24,7 @@ Based on the structure of the residual convolutional networks. Current precision
 
 Recommend to install dependency via [Anaconda](https://www.anaconda.com/distribution/)
 
-* Keras >= 2.2.4
-* Tensorflow >= 1.12
+* Tensorflow >= 2.0.0
 * Pandas >= 0.20
 * pyteomics
 * lxml
@@ -40,13 +45,13 @@ Apparently, 'Peptide' and 'Charge' columns mean what it says. The 'Type' must be
 
 Simply run:
 
-`python predfull.py --input .\example.tsv --weights pm.hdf5 --output .\example.mgf`
+`python predfull.py --input example.tsv --model pm.h5 --output example.mgf`
 
 The output file is in MGF format
 
 * --input : the input file
-* --weights : the weight file
 * --output : the output path
+* --model : the pretrained model
 
 ## Prediction Examples
 
