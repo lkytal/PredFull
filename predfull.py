@@ -138,7 +138,7 @@ args = parser.parse_args()
 K.clear_session()
 
 pm = k.models.load_model(args.model, compile=0)
-pm.compile(optimizer=k.optimizers.Adam(lr=0.0003), loss='cosine')
+# pm.compile(optimizer=k.optimizers.Adam(lr=0.0003), loss='cosine')
 
 # type: 0 unknown, 1 cid, 2 etd, 3 hcd
 types = {'HCD': 3, 'ETD': 2}
