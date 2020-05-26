@@ -44,28 +44,13 @@ def asnp32(x): return np.asarray(x, dtype='float32')
 def fastmass(pep, ion_type, charge):
     return mass.fast_mass(pep, ion_type=ion_type, charge=charge) + 57.021 * pep.count('C') / charge
 
-def normalize(it):
-    it[it < 0] = 0
-    return np.sqrt(np.sqrt(it / max_it))
-
-def scale(v, _max_it=1.0, inplace = False):
-    c0 = np.max(v)
-    if c0 == _max_it or c0 == 0: return v #no need to scale
-
-    c = _max_it / c0
-#     return v * c
-    if inplace: return np.multiply(v, c, dtype='float32', out=v)
-    else: return np.multiply(v, c, dtype='float32')
-
 def sparse(x, y, th = 0.005):
-    y = scale(y)
-    mz = []
-    it = []
-    for i in range(len(y)):
-        if y[i] >= th:
-            mz.append(x[i])
-            it.append(y[i])
-    return np.asarray(mz, dtype='float32'), np.asarray(it, dtype='float32')
+    x = np.asarray(x, dtype='float32')
+    y = np.asarray(y, dtype='float32')
+
+    y /= np.max(y)
+
+    return x[y > th], y[y > th]
 
 
 mono = {"G": 57.021464, "A": 71.037114, "S": 87.032029, "P": 97.052764, "V": 99.068414, "T": 101.04768,
@@ -161,5 +146,5 @@ y = pm.predict(input_generator(inputs, batch_size), verbose=1, steps=int(math.ce
 y = np.square(y)
 
 f = open(args.output, 'w+')
-f.write('\n\n'.join([tomgf(sp, yi) for sp, yi in zip(inputs, y)]))
+f.writelines("%s\n\n" % tomgf(sp, yi) for sp, yi in zip(inputs, y))
 f.close()
