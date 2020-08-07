@@ -40,9 +40,17 @@ def pos2mz(pos, pre=pre()): return pos * pre + low
 def asnp(x): return np.asarray(x)
 def asnp32(x): return np.asarray(x, dtype='float32')
 
+# compute percursor mass
+def fastmass(pep, ion_type, charge, mod=None, cam=True):
+    base = mass.fast_mass(pep, ion_type=ion_type, charge=charge)
 
-def fastmass(pep, ion_type, charge):
-    return mass.fast_mass(pep, ion_type=ion_type, charge=charge) + 57.021 * pep.count('C') / charge
+    if cam: base += 57.021 * pep.count('C') / charge
+
+    if not mod is None:
+        base += 15.995 * np.sum(mod == 1) / charge
+
+        base += -np.sum(mod[mod < 0])
+    return base
 
 def sparse(x, y, th = 0.005):
     x = np.asarray(x, dtype='float32')
@@ -52,6 +60,45 @@ def sparse(x, y, th = 0.005):
 
     return x[y > th], y[y > th]
 
+# help function to parse modifications
+def getmod(pep):
+    mod = np.zeros(len(pep))
+
+    if pep.isalpha(): return pep, mod, 0
+
+    seq = []
+    nmod = 0
+
+    i = -1
+    while len(pep) > 0:
+        if pep[0] == '(':
+            if pep[:3] == '(O)':
+                mod[i] = 1
+            else:
+                mod[i] = -2
+
+            pep = pep[3:]
+        elif pep[0] == '+' or pep[0] == '-':
+            sign = 1 if pep[0] == '+' else -1
+
+            for j in range(1, len(pep)):
+                if pep[j] not in '.1234567890':
+                    if i == -1: #N-term mod
+                        nmod += sign * float(pep[1:j])
+                    else:
+                        mod[i] += sign * float(pep[1:j])
+                    pep = pep[j:]
+                    break
+
+            if j == len(pep) - 1 and pep[-1] in '.1234567890': # till end
+                mod[i] += sign * float(pep[1:])
+                break
+        else:
+            seq += pep[0]
+            pep = pep[1:]
+            i = len(seq) - 1 # more realible
+
+    return ''.join(seq), mod[:len(seq)], nmod
 
 mono = {"G": 57.021464, "A": 71.037114, "S": 87.032029, "P": 97.052764, "V": 99.068414, "T": 101.04768,
         "C": 160.03019, "L": 113.08406, "I": 113.08406, "D": 115.02694, "Q": 128.05858, "K": 128.09496,
@@ -69,17 +116,19 @@ oh_dim = len(Alist) + 2
 charMap = {'@': 0, '[': 21}
 for i, a in enumerate(Alist): charMap[a] = i + 1
 
-x_dim = oh_dim + 1
+x_dim = oh_dim + 2
 xshape = (max_in, x_dim)
 
 # embed input item into a matrix
-def embed(sp, mass_scale = max_mz, out=None, ignore=False, pep=None):
+def embed(sp, mass_scale = max_mz, out=None, pep=None):
     if out is None: em = np.zeros((max_in, x_dim), dtype='float32')
     else: em = out
 
     if pep is None: pep = sp['pep']
 
-    if len(pep) > max_len and ignore != False: return em # too long
+    mod = sp['mod']
+
+    if len(pep) > max_len: raise "input too long"
 
     em[len(pep)][21] = 1 # ending pos, next line with +1 to skip this
     for i in range(len(pep) + 1, max_in - 1): em[i][0] = 1 # padding first, meta column should not be affected
@@ -93,6 +142,7 @@ def embed(sp, mass_scale = max_mz, out=None, ignore=False, pep=None):
     for i in range(len(pep)):
         em[i][charMap[pep[i]]] = 1 # 1 - 20
         em[i][-1] = mono[pep[i]] / mass_scale
+        em[i][-2] = mod[i]
 
     return em
 
@@ -131,9 +181,26 @@ types = {'HCD': 3, 'ETD': 2}
 # read inputs
 inputs = []
 for item in pd.read_csv(args.input, sep='\t').itertuples():
-    if len(item.Peptide) <= max_len:
-        inputs.append({'pep': item.Peptide, 'charge': item.Charge, 'type': types[item.Type],
-                    'nce': item.NCE, 'mass': fastmass(item.Peptide, 'M', item.Charge)})
+    if len(item.Peptide) > max_len:
+        print("input", item.Peptide, 'exceed max length of', max_len, ", ignored")
+        continue
+
+    if item.Charge < 1 or item.Charge > 6:
+        print("input", item.Peptide, 'has unspported charge state of', item.Charge, ", ignored")
+        continue
+
+    pep, mod, nterm_mod = getmod(item.Peptide)
+
+    if nterm_mod != 0:
+        print("input", item.Peptide, 'has N-term modification, ignored')
+        continue
+
+    if np.any(mod != 0) and set(mod) != set([0, 1]):
+        print("Only Oxidation modification is supported, ignored input", item.Peptide)
+        continue
+
+    inputs.append({'pep': pep, 'mod': mod, 'charge': item.Charge, 'type': types[item.Type],
+                    'nce': item.NCE, 'mass': fastmass(pep, 'M', item.Charge, mod=mod)})
 
 def input_generator(x, batch_size):
     while len(x) > batch_size:
