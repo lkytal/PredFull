@@ -247,7 +247,7 @@ while len(inputs) > 0:
 
     x = asnp32([embed(item) for item in sliced])
 
-    y = pm.predict(x, verbose=1, steps=len(sliced) // batch_size)
+    y = pm.predict(x, verbose=1, batch_size=batch_size)
     y = np.square(y)
 
     f.writelines("%s\n\n" % tomgf(sp, yi) for sp, yi in zip(sliced, y))
