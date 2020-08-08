@@ -231,19 +231,26 @@ for item in pd.read_csv(args.input, sep='\t').itertuples():
                    'nce': item.NCE, 'type': types[item.Type],
                    'mass': fastmass(pep, 'M', item.Charge, mod=mod)})
 
-
-def input_generator(x, batch_size):
-    while len(x) > batch_size:
-        yield asnp32([embed(item) for item in x[:batch_size]])
-        x = x[batch_size:]
-    yield asnp32([embed(item) for item in x])
-
-
 batch_size = 128
-y = pm.predict(input_generator(inputs, batch_size), verbose=1,
-               steps=int(math.ceil(len(inputs) / batch_size)))
-y = np.square(y)
+batch_per_loop = 64
+loop_size = batch_size * batch_per_loop
 
 f = open(args.output, 'w+')
-f.writelines("%s\n\n" % tomgf(sp, yi) for sp, yi in zip(inputs, y))
+
+while len(inputs) > 0:
+    if len(inputs) >= loop_size:
+        sliced = inputs[:loop_size]
+        inputs = inputs[loop_size:]
+    else:
+        sliced = inputs
+        inputs = []
+
+    x = asnp32([embed(item) for item in sliced])
+
+    y = pm.predict(x, verbose=1, steps=len(sliced) // batch_size)
+    y = np.square(y)
+
+    f.writelines("%s\n\n" % tomgf(sp, yi) for sp, yi in zip(sliced, y))
+
 f.close()
+print("Prediction finished")
