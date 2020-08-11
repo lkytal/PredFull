@@ -31,7 +31,9 @@ Based on the structure of the residual convolutional networks. Current precision
 
 Recommend to install dependency via [Anaconda](https://www.anaconda.com/distribution/)
 
-* Tensorflow >= 2.0.0
+__The Tensorflow has to be 2.30 or newer! A comaptibilty bug in Tensorflow made version before 2.3.0 can't load model correctly. We'll release new model once they solve this.__
+
+* Tensorflow >= 2.3.0
 * Pandas >= 0.20
 * pyteomics
 * lxml
