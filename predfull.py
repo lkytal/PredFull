@@ -58,7 +58,7 @@ def fastmass(pep, ion_type, charge, mod=None, cam=True):
     return base
 
 
-def sparse(x, y, th=0.005):
+def sparse(x, y, th=0.001):
     x = np.asarray(x, dtype='float32')
     y = np.asarray(y, dtype='float32')
 
@@ -156,7 +156,7 @@ def embed(sp, mass_scale=max_mz, out=None, pep=None):
         mass_scale  # pos 0, and overwrtie above padding
     meta[sp['charge']] = 1  # pos 1 - 4
     meta[5 + sp['type']] = 1  # pos 5 - 8
-    meta[-1] = sp['nce'] / 100.0 if 'nce' in sp else 0.25
+    meta[-1] = sp['nce'] / 10000.0 if 'nce' in sp else 0.0025
 
     for i in range(len(pep)):
         em[i][charMap[pep[i]]] = 1  # 1 - 20
