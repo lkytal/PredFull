@@ -85,3 +85,7 @@ To evaluate the similarity, run:
 You sholud get around $0.8027$ average similarities on this given data.
 
 __Make sure that items in `example.tsv` and `hcd_testingset.mgf` are of same order! Don't permute items or add/delete items unless you will align them by yourself.__
+
+## How to build & train the model
+
+For who interested in reproduce this model, here we provide `build_model_example.py` of example codes to build the model. More details of how to train this model will release later.
