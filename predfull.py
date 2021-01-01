@@ -1,8 +1,10 @@
-import argparse
+#!/usr/bin/env python3
+
 import numpy as np
 import pandas as pd
 import math
 from pyteomics import mgf, mass
+import argparse
 
 import tensorflow.keras as k
 from tensorflow.keras import backend as K

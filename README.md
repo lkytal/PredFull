@@ -8,9 +8,10 @@ Kaiyuan Liu, Sujun Li, Lei Wang, Yuzhen Ye, Haixu Tang
 
 ## Update History
 
-* 2020.08.22: Fixed performance issues
-* 2020.05.25: Support predicting non-tryptic peptides
-* 2019.09.01: First version
+* 2021.01.01: Update example results.
+* 2020.08.22: Fixed performance issues.
+* 2020.05.25: Support predicting non-tryptic peptides.
+* 2019.09.01: First version.
 
 
 ## Method
@@ -33,7 +34,7 @@ Based on the structure of the residual convolutional networks. Current precision
 
 Recommend to install dependency via [Anaconda](https://www.anaconda.com/distribution/)
 
-__The Tensorflow has to be 2.30 or newer! A compatibility bug in Tensorflow made version before 2.3.0 can't load the model correctly. We'll release a new model once they solve this.__
+__The Tensorflow has to be 2.30 or newer! A compatibility bug in Tensorflow made version before 2.3.0 can't load the model correctly. We'll release a new model once the Tensorflow team solve this.__
 
 * Python >= 3.7
 * Tensorflow >= 2.3.0
@@ -67,6 +68,8 @@ The output file is in MGF format
 
 ## Prediction Examples
 
+__Note that itensities are showed by sqaure rooted values__
+
 ![example 1](imgs/hcd2.png)
 
 ![example 2](imgs/hcd1.png)
@@ -82,7 +85,7 @@ To evaluate the similarity, run:
 * --real : the ground truth file
 * --pred : the predcition file
 
-You sholud get around $0.8027$ average similarities on this given data.
+You sholud get around $0.8025$ average similarities using this two pre-given MGF files.
 
 __Make sure that items in `example.tsv` and `hcd_testingset.mgf` are of same order! Don't permute items or add/delete items unless you will align them by yourself.__
 
