@@ -14,7 +14,7 @@ DIMENSION = 20000
 BIN_SIZE = 0.1
 
 
-def spectra2vector(mz_list, itensity_list, mass, bin_size, charge):
+def spectrum2vector(mz_list, itensity_list, mass, bin_size, charge):
     itensity_list = itensity_list / np.max(itensity_list)
 
     vector = np.zeros(DIMENSION, dtype='float32')
@@ -98,16 +98,16 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--real', type=str,
                     help='Real MGF file path', default='hcd_testingset.mgf')
 parser.add_argument('--pred', type=str,
-                    help='predicted MGF file path', default='example.mgf')
+                    help='predicted MGF file path', default='example_prediction.mgf')
 
 args = parser.parse_args()
 
 print('Reading', args.real)
-real_vectors = [spectra2vector(sp['mz'], sp['it'], sp['mass'], BIN_SIZE,
+real_vectors = [spectrum2vector(sp['mz'], sp['it'], sp['mass'], BIN_SIZE,
                                sp['charge']) for sp in readmgf(args.real)]
 
 print('Reading', args.pred)
-pred_vectors = [spectra2vector(sp['mz'], sp['it'], sp['mass'], BIN_SIZE,
+pred_vectors = [spectrum2vector(sp['mz'], sp['it'], sp['mass'], BIN_SIZE,
                                sp['charge']) for sp in readmgf(args.pred)]
 
 similarites = [cosine(sp1, sp2)

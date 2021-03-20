@@ -184,6 +184,8 @@ def tomgf(sp, y):
     imz = np.arange(0, dim, dtype='int32') * precision + low  # more acurate
 
     mzs, its = sparse(imz, y)
+    # mzs *= 1.00052
+
     peaks = [f"{f2(mz)} {f4(it * 1000)}" for mz, it in zip(mzs, its)]
 
     return head + '\n'.join(peaks) + '\nEND IONS'
@@ -193,7 +195,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--input', type=str,
                     help='input file path', default='example.tsv')
 parser.add_argument('--output', type=str,
-                    help='output file path', default='example.mgf')
+                    help='output file path', default='example_prediction.mgf')
 parser.add_argument('--model', type=str,
                     help='model file path', default='pm.h5')
 
@@ -233,7 +235,7 @@ for item in pd.read_csv(args.input, sep='\t').itertuples():
                    'nce': item.NCE, 'type': types[item.Type],
                    'mass': fastmass(pep, 'M', item.Charge, mod=mod)})
 
-batch_size = 128
+batch_size = 256
 batch_per_loop = 64
 loop_size = batch_size * batch_per_loop
 

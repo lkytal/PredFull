@@ -58,7 +58,7 @@ Apparently, 'Peptide' and 'Charge' columns mean what it says. The 'Type' must be
 
 Simply run:
 
-`python predfull.py --input example.tsv --model pm.h5 --output example.mgf`
+`python predfull.py --input example.tsv --model pm.h5 --output example_prediction.mgf`
 
 The output file is in MGF format
 
@@ -80,7 +80,7 @@ We provide sample data and codes for you to evaluate the prediction performance.
 
 To evaluate the similarity, run:
 
-`python compare_performance.py --real hcd_testingset.mgf --pred example.mgf`
+`python compare_performance.py --real hcd_testingset.mgf --pred example_prediction.mgf`
 
 * --real : the ground truth file
 * --pred : the predcition file
@@ -91,4 +91,4 @@ __Make sure that items in `example.tsv` and `hcd_testingset.mgf` are of same ord
 
 ## How to build & train the model
 
-For who interested in reproduce this model, here we provide `build_model_example.py` of example codes to build the model. More details of how to train this model will release later.
+For who interested in reproduce this model, here we provide `train_model.py` of example codes to build and train the model.
