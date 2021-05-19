@@ -127,7 +127,11 @@ def embed(sp, mass_scale = max_mz):
     meta[0] = fastmass(pep, ion_type='M', charge=1) / mass_scale # pos 0, and overwrtie above padding
     meta[sp['charge']] = 1 # pos 1 - 4
     meta[5 + sp['type']] = 1 # pos 5 - 8
-    meta[-1] = sp['nce'] / 100.0 if 'nce' in sp else 0.25
+
+    if not 'nce' in sp or sp['nce'] == 0:
+        meta[-1] = 0.25
+    else:
+        meta[-1] = sp['nce'] / 100.0
 
     for i in range(len(pep)):
         em[i][charMap[pep[i]]] = 1 # 1 - 20
@@ -144,7 +148,7 @@ def embed(sp, mass_scale = max_mz):
 
 
 # functions that transfer predictions into mgf format
-def sparse(x, y, th=0.001):
+def sparse(x, y, th=0.0002):
     x = np.asarray(x, dtype='float32')
     y = np.asarray(y, dtype='float32')
 

@@ -7,7 +7,7 @@ from pyteomics import mgf, mass
 def norm(x): return np.linalg.norm(x)
 
 
-def cosine(u, v): return np.dot(u, v) / (norm(u) * norm(v) + 1e-16)
+def cosine(u, v): return np.dot(u, v) / max(norm(u) * norm(v), 1e-16)
 
 
 DIMENSION = 20000
@@ -30,7 +30,7 @@ def spectrum2vector(mz_list, itensity_list, mass, bin_size, charge):
     # normalize
     vector = np.sqrt(vector)
 
-    # remove precursors, including isotropic peaks
+    # remove precursors, including isotropic precursor peaks
     for delta in (0, 1, 2):
         precursor_mz = mass + delta / charge
         if precursor_mz > 0 and precursor_mz < 2000:

@@ -2,17 +2,19 @@
 
 __Visit [http://predfull.com/](http://predfull.com/) to try online prediction__
 
-This work was published on Analytical Chemistry: [`Full-Spectrum Prediction of Peptides Tandem Mass Spectra using Deep Neural Network`](https://pubs.acs.org/doi/10.1021/acs.analchem.9b04867)
+> This work was published on Analytical Chemistry: [`Full-Spectrum Prediction of Peptides Tandem Mass Spectra using Deep Neural Network`](https://pubs.acs.org/doi/10.1021/acs.analchem.9b04867)
+>
+> Kaiyuan Liu, Sujun Li, Lei Wang, Yuzhen Ye, Haixu Tang
 
-Kaiyuan Liu, Sujun Li, Lei Wang, Yuzhen Ye, Haixu Tang
+The first model for predicting complete tandem mass spectra from peptides sequences, using a deep CNN neural network trained on over 2 million experimental spectra.
 
 ## Update History
 
+* 2021.05.18: Support predicting peptides with oxidized methionine.
 * 2021.01.01: Update example results.
 * 2020.08.22: Fixed performance issues.
 * 2020.05.25: Support predicting non-tryptic peptides.
 * 2019.09.01: First version.
-
 
 ## Method
 
@@ -24,17 +26,15 @@ Based on the structure of the residual convolutional networks. Current precision
 
 ### Important Notes
 
-* This model support only UNMODIFIED peptides (for now, at least)
-* This model assume a FIXED carbamidomethyl on C
+* The only modification (PTM) supported is **oxidation on Methionine**, otherwise only UNMODIFIED peptides are allowed. To indicate an oxidized methionine, use the format "M(O)".
+* This model assumes a __FIXED__ carbamidomethyl on C
 * The length of input peptides are limited to =< 30
 * The prediction will NOT output peaks with M/z > 2000
-* Predicted peaks that are weaker than STRONGEST_PEAK / 1000 are regarded as noises and ignored from the output.
+* Predicted peaks that are weaker than STRONGEST_PEAK / 1000 are regarded as noises thus will be omitted from the final output.
 
 ### Required Packages
 
 Recommend to install dependency via [Anaconda](https://www.anaconda.com/distribution/)
-
-__The Tensorflow has to be 2.30 or newer! A compatibility bug in Tensorflow made version before 2.3.0 can't load the model correctly. We'll release a new model once the Tensorflow team solve this.__
 
 * Python >= 3.7
 * Tensorflow >= 2.3.0
@@ -42,17 +42,20 @@ __The Tensorflow has to be 2.30 or newer! A compatibility bug in Tensorflow made
 * pyteomics
 * lxml
 
+__The Tensorflow has to be 2.30 or newer! A compatibility bug in Tensorflow made version before 2.3.0 can't load the model correctly. We'll release a new model once the Tensorflow team solve this.__
+
 ### Input format
 
-The required input format is TSV, with following columns:
+The required input format is TSV, with the following columns:
 
 Peptide | Charge | Type | NCE
 ------- | ------ | ---- | ---
 AAAAAAAAAVSR | 2 | HCD | 25
 AAGAAESEEDFLR | 2 | HCD | 25
 AAPAPTASSTININTSTSK | 2 | HCD | 25
+AAPAPM(O)NTSTSK | 2 | HCD | 25
 
-Apparently, 'Peptide' and 'Charge' columns mean what it says. The 'Type' must be HCD or ETD (in uppercase). NCE means normalized collision energy, set to 25 as default (Notice: the released model newer trained on samples with NCE > 50). Check `example.tsv` for examples.
+Apparently, 'Peptide' and 'Charge' columns mean what it says. The 'Type' must be HCD or ETD (in uppercase). NCE means normalized collision energy, set to 25 as default. Note that in the above examples the last peptide has an oxidized methionine, and it's the only modification supported now. Check `example.tsv` for examples.
 
 ### Usage
 
@@ -62,13 +65,13 @@ Simply run:
 
 The output file is in MGF format
 
-* --input : the input file
-* --output : the output path
-* --model : the pretrained model
+* --input: the input file
+* --output: the output path
+* --model: the pretrained model
 
 ## Prediction Examples
 
-__Note that itensities are showed by sqaure rooted values__
+__Note that intensities are shown by square rooted values__
 
 ![example 1](imgs/hcd2.png)
 
@@ -76,19 +79,19 @@ __Note that itensities are showed by sqaure rooted values__
 
 ## Performance Evaluation
 
-We provide sample data and codes for you to evaluate the prediction performance. The `hcd_testingset.mgf` file contains ground truth spectra (extracted from NIST) that corresponding to items in `example.tsv`,  while `example.mgf` are pre-runned prediction results of `example.tsv`.
+We provide sample data and codes for you to evaluate the prediction performance. The `hcd_testingset.mgf` file contains ground truth spectra (randomly sampled from [NIST Human Synthetic Peptide Spectral Library](https://chemdata.nist.gov/dokuwiki/doku.php?id=peptidew:lib:kustersynselected20170530)) that corresponding to items in `example.tsv`,  while the `example_prediction.mgf` are pre-computed prediction results of `example.tsv`.
 
 To evaluate the similarity, run:
 
 `python compare_performance.py --real hcd_testingset.mgf --pred example_prediction.mgf`
 
-* --real : the ground truth file
-* --pred : the predcition file
+* --real: the ground truth file
+* --pred: the prediction file
 
-You sholud get around $0.8025$ average similarities using this two pre-given MGF files.
+You should get around ~0.795 average similarities using these two pre-given MGF files.
 
-__Make sure that items in `example.tsv` and `hcd_testingset.mgf` are of same order! Don't permute items or add/delete items unless you will align them by yourself.__
+__Make sure that items in `example.tsv` and `hcd_testingset.mgf` are of the same order! Don't permute items or add/delete items unless you will align them by yourself.__
 
 ## How to build & train the model
 
-For who interested in reproduce this model, here we provide `train_model.py` of example codes to build and train the model.
+For those who are interested in reproducing this model, here we provide `train_model.py` of example codes to build and train the model.
