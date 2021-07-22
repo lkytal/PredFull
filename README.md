@@ -24,6 +24,8 @@ Based on the structure of the residual convolutional networks. Current precision
 
 ## How to use
 
+__Expect clone this project, you should download `pm.h5` from [google drive](https://drive.google.com/drive/folders/1KQqQGTSY5y2w3cQV1zKzuGbhgThCS9vn?usp=sharing) and place it into this folder.__
+
 ### Important Notes
 
 * The only modification (PTM) supported is **oxidation on Methionine**, otherwise only UNMODIFIED peptides are allowed. To indicate an oxidized methionine, use the format "M(O)".
@@ -79,9 +81,9 @@ __Note that intensities are shown by square rooted values__
 
 ## Performance Evaluation
 
-We provide sample data and codes for you to evaluate the prediction performance. The `hcd_testingset.mgf` file contains ground truth spectra (randomly sampled from [NIST Human Synthetic Peptide Spectral Library](https://chemdata.nist.gov/dokuwiki/doku.php?id=peptidew:lib:kustersynselected20170530)) that corresponding to items in `example.tsv`,  while the `example_prediction.mgf` are pre-computed prediction results of `example.tsv`.
+We provide sample data on [google drive](https://drive.google.com/drive/folders/1KQqQGTSY5y2w3cQV1zKzuGbhgThCS9vn?usp=sharing) and codes for you to evaluate the prediction performance. The `hcd_testingset.mgf` file on google drive contains ground truth spectra (randomly sampled from [NIST Human Synthetic Peptide Spectral Library](https://chemdata.nist.gov/dokuwiki/doku.php?id=peptidew:lib:kustersynselected20170530)) that corresponding to items in `example.tsv`, while the `example_prediction.mgf` file contains pre-run predictions.
 
-To evaluate the similarity, run:
+To evaluate the similarity, first download groud truth reference file `hcd_testingset.mgf` from [google drive](https://drive.google.com/drive/folders/1KQqQGTSY5y2w3cQV1zKzuGbhgThCS9vn?usp=sharing), then run:
 
 `python compare_performance.py --real hcd_testingset.mgf --pred example_prediction.mgf`
 
