@@ -10,6 +10,7 @@ The first model for predicting complete tandem mass spectra from peptides sequen
 
 ## Update History
 
+* 2022.05.19: Support input peptide of any length
 * 2021.05.18: Support predicting peptides with oxidized methionine.
 * 2021.01.01: Update example results.
 * 2020.08.22: Fixed performance issues.
@@ -24,13 +25,13 @@ Based on the structure of the residual convolutional networks. Current precision
 
 ## How to use
 
-__Expect clone this project, you should download `pm.h5` from [google drive](https://drive.google.com/drive/folders/1KQqQGTSY5y2w3cQV1zKzuGbhgThCS9vn?usp=sharing) and place it into this folder.__
+__Expect clone this project, you should download `pm.h5` from [google drive](https://drive.google.com/drive/folders/1Ca3HdV-w8TZPRa9KhPBbjrTtGSmtEIsn?usp=sharing) and place it into this folder.__
 
 ### Important Notes
 
 * The only modification (PTM) supported is **oxidation on Methionine**, otherwise only UNMODIFIED peptides are allowed. To indicate an oxidized methionine, use the format "M(O)".
 * This model assumes a __FIXED__ carbamidomethyl on C
-* The length of input peptides are limited to =< 30
+* The length of input peptides are __NOT__ limited, however, would expect poor performance with peptides longer than 30
 * The prediction will NOT output peaks with M/z > 2000
 * Predicted peaks that are weaker than STRONGEST_PEAK / 1000 are regarded as noises thus will be omitted from the final output.
 
@@ -81,9 +82,9 @@ __Note that intensities are shown by square rooted values__
 
 ## Performance Evaluation
 
-We provide sample data on [google drive](https://drive.google.com/drive/folders/1KQqQGTSY5y2w3cQV1zKzuGbhgThCS9vn?usp=sharing) and codes for you to evaluate the prediction performance. The `hcd_testingset.mgf` file on google drive contains ground truth spectra (randomly sampled from [NIST Human Synthetic Peptide Spectral Library](https://chemdata.nist.gov/dokuwiki/doku.php?id=peptidew:lib:kustersynselected20170530)) that corresponding to items in `example.tsv`, while the `example_prediction.mgf` file contains pre-run predictions.
+We provide sample data on [google drive](https://drive.google.com/drive/folders/1Ca3HdV-w8TZPRa9KhPBbjrTtGSmtEIsn?usp=sharing) and codes for you to evaluate the prediction performance. The `hcd_testingset.mgf` file on google drive contains ground truth spectra (randomly sampled from [NIST Human Synthetic Peptide Spectral Library](https://chemdata.nist.gov/dokuwiki/doku.php?id=peptidew:lib:kustersynselected20170530)) that corresponding to items in `example.tsv`, while the `example_prediction.mgf` file contains pre-run predictions.
 
-To evaluate the similarity, first download groud truth reference file `hcd_testingset.mgf` from [google drive](https://drive.google.com/drive/folders/1KQqQGTSY5y2w3cQV1zKzuGbhgThCS9vn?usp=sharing), then run:
+To evaluate the similarity, first download groud truth reference file `hcd_testingset.mgf` from [google drive](https://drive.google.com/drive/folders/1Ca3HdV-w8TZPRa9KhPBbjrTtGSmtEIsn?usp=sharing), then run:
 
 `python compare_performance.py --real hcd_testingset.mgf --pred example_prediction.mgf`
 
