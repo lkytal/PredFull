@@ -25,6 +25,7 @@ def spectrum2vector(mz_list, itensity_list, mass, bin_size, charge):
     indexes = np.around(indexes).astype('int32')
 
     for i, index in enumerate(indexes):
+        if index >= DIMENSION: continue
         vector[index] += itensity_list[i]
 
     # normalize

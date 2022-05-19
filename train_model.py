@@ -76,7 +76,7 @@ def embed(sp, mass_scale=MAX_MZ):
         encoding[i][charMap[pep[i]]] = 1  # 1 - 20
         encoding[i][-1] = mono[pep[i]] / mass_scale
 
-    encoding[len(pep)][21] = 1  # ending charactor
+    encoding[len(pep)][encoding_dimension - 1] = 1  # ending charactor
     for i in range(len(pep) + 1, MAX_PEPTIDE_LENGTH - 1):
         encoding[i][0] = 1  # padding charactors
 

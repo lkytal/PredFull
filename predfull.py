@@ -19,13 +19,14 @@ precision = 0.1
 low = 0
 dim = 20000
 upper = math.floor(low + dim * precision)
-mz_scale = 2000.0
 max_mz = dim * precision + low
 
 max_out = dim
-max_len = 30
-max_in = max_len + 2
-max_charge = 6
+meta_shape = (3, 30) # (charge, ftype, other(mass, nce))
+max_charge = 30
+
+mz_scale = 20000.0
+len_scale = 1000
 
 mono = {"G": 57.021464, "A": 71.037114, "S": 87.032029, "P": 97.052764, "V": 99.068414, "T": 101.04768,
         "C": 160.03019, "L": 113.08406, "I": 113.08406, "D": 115.02694, "Q": 128.05858, "K": 128.09496,
@@ -114,38 +115,72 @@ def getmod(pep):
     return ''.join(seq), mod[:len(seq)], nmod
 
 
-x_dim = oh_dim + 3
+x_dim = oh_dim + 2 + 3
+xshape = [-1, x_dim]
 
 # embed input item into a matrix
-def embed(sp, mass_scale = max_mz):
-    em = np.zeros((max_in, x_dim), dtype='float32')
-
-    pep = sp['pep']
+def embed(spectrum, xshape=xshape, mass_scale=200, embedding=None, ignore=False, pep=None):
+    if embedding is None: embedding = np.zeros(xshape, dtype='float32')
+    
+    if pep is None: pep = spectrum['pep']
     pep = pep.replace('L', 'I')
 
-    meta = em[-1]
-    meta[0] = fastmass(pep, ion_type='M', charge=1) / mass_scale # pos 0, and overwrtie above padding
-    meta[sp['charge']] = 1 # pos 1 - 4
-    meta[5 + sp['type']] = 1 # pos 5 - 8
+    embedding[len(pep)][oh_dim - 1] = 1 # ending pos
+    for i, aa in enumerate(pep):
+        embedding[i][charMap[aa]] = 1 # 1 - 20
+        embedding[i][oh_dim] = mono[aa] / mass_scale
 
-    if not 'nce' in sp or sp['nce'] == 0:
-        meta[-1] = 0.25
-    else:
-        meta[-1] = sp['nce'] / 100.0
+    embedding[:len(pep), oh_dim + 1] = np.arange(len(pep)) / len_scale # position info
+    embedding[len(pep) + 1, 0] = 1 # padding info
 
-    for i in range(len(pep)):
-        em[i][charMap[pep[i]]] = 1 # 1 - 20
-        em[i][-1] = mono[pep[i]] / mass_scale
+    if 'mod' in spectrum:
+        for i, modi in enumerate(spectrum['mod']):
+            embedding[i][oh_dim + 2 + int(modi)] = 1
 
-    if 'mod' in sp: em[:len(pep), -2] = sp['mod'][:len(pep)]
+    return embedding
 
-    em[:len(pep), -3] = np.arange(len(pep)) / max_in #position
+# preprocess function for inputs
+def preprocessor(batch):
+    batch_size = len(batch)
+    embedding = np.zeros((batch_size, *xshape), dtype='float32')
+    meta = np.zeros((batch_size, *meta_shape), dtype='float32')
 
-    em[len(pep)][oh_dim - 1] = 1 # ending pos, next line with +1 to skip this
-    em[len(pep) + 1:-1, 0] = 1 # expect last one, which is meta column
+    for i, sp in enumerate(batch):
+        pep = sp['pep']
 
-    return em
+        embed(sp, embedding=embedding[i])
+        meta[i][0][sp['charge'] - 1] = 1 # charge
+        meta[i][1][sp['type']] = 1 # ftype
+        meta[i][2][0] = fastmass(pep, ion_type='M', charge=1) / mz_scale         
 
+        if not 'nce' in sp or sp['nce'] == 0:
+            meta[i][2][-1] = 0.25
+        else:
+            meta[i][2][-1] = sp['nce'] / 100.0
+        
+    return (embedding, meta)
+
+
+# generator for inputs
+class input_generator(k.utils.Sequence):
+    def __init__(self, spectra, processor, batch_size, shuffle=1):
+        self.spectra = spectra
+        self.processor = processor
+        self.batch_size = batch_size
+        self.shuffle = shuffle
+
+    def on_epoch_begin(self, epoch):
+        if epoch > 0 and self.shuffle:
+            np.random.shuffle(self.spectra)
+
+    def __len__(self):
+        return math.ceil(len(self.spectra) / self.batch_size)
+
+    def __getitem__(self, idx):
+        start_idx = idx * self.batch_size
+        end_idx = min(start_idx + self.batch_size, len(self.spectra))
+
+        return (self.processor(self.spectra[start_idx: end_idx]), )
 
 # functions that transfer predictions into mgf format
 def sparse(x, y, th=0.0002):
@@ -179,6 +214,8 @@ def tomgf(sp, y):
 parser = argparse.ArgumentParser()
 parser.add_argument('--input', type=str,
                     help='input file path', default='example.tsv')
+parser.add_argument('--batch_size', type=str,
+                    help='batch size per loop', default=256)
 parser.add_argument('--output', type=str,
                     help='output file path', default='example_prediction.mgf')
 parser.add_argument('--model', type=str,
@@ -197,10 +234,6 @@ types = {'un': 0, 'cid': 1, 'etd': 2, 'hcd': 3, 'ethcd': 4, 'etcid': 5}
 # read inputs
 inputs = []
 for item in pd.read_csv(args.input, sep='\t').itertuples():
-    if len(item.Peptide) > max_len:
-        print("input", item.Peptide, 'exceed max length of', max_len, ", ignored")
-        continue
-
     if item.Charge < 1 or item.Charge > max_charge:
         print("input", item.Peptide, 'exceed max charge of', max_charge, ", ignored")
         continue
@@ -218,34 +251,26 @@ for item in pd.read_csv(args.input, sep='\t').itertuples():
     inputs.append({'pep': pep, 'mod': mod, 'charge': item.Charge, 'title': item.Peptide,
                    'nce': item.NCE, 'type': types[item.Type.lower()],
                    'mass': fastmass(pep, 'M', item.Charge, mod=mod)})
+                   
+    xshape[0] = max(xshape[0], len(pep) + 2) # update xshape to match max input peptide
 
-batch_size = 256
 batch_per_loop = 64
-loop_size = batch_size * batch_per_loop
+loop_size = args.batch_size * batch_per_loop
 
 f = open(args.output, 'w+')
 
 while len(inputs) > 0:
     if len(inputs) >= loop_size:
-        sliced = inputs[:loop_size]
+        sliced_spectra = inputs[:loop_size]
         inputs = inputs[loop_size:]
     else:
-        sliced = inputs
+        sliced_spectra = inputs
         inputs = []
 
-    x = asnp32([embed(item) for item in sliced])
-
-    c = np.zeros((len(sliced), max_charge), dtype='float32') # list of input charges
-    ft = np.zeros((len(sliced), 4), dtype='float32') # list of input segmentation methods
-
-    for i, sp in enumerate(sliced):
-        c[i][sp['charge'] - 1] = 1
-        ft[i][sp['type']] = 1
-
-    y = pm.predict((x, c, ft), verbose=1, batch_size=batch_size)
+    y = pm.predict(input_generator(sliced_spectra, preprocessor, batch_size=args.batch_size), verbose=1)
     y = np.square(y)
 
-    f.writelines("%s\n\n" % tomgf(sp, yi) for sp, yi in zip(sliced, y))
+    f.writelines("%s\n\n" % tomgf(sp, yi) for sp, yi in zip(sliced_spectra, y))
 
 f.close()
 print("Prediction finished")

@@ -90,7 +90,7 @@ To evaluate the similarity, first download groud truth reference file `hcd_testi
 * --real: the ground truth file
 * --pred: the prediction file
 
-You should get around ~0.795 average similarities using these two pre-given MGF files.
+You should get around ~0.789 average similarities using these two pre-given MGF files.
 
 __Make sure that items in `example.tsv` and `hcd_testingset.mgf` are of the same order! Don't permute items or add/delete items unless you will align them by yourself.__
 
