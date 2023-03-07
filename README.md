@@ -8,6 +8,8 @@ __Visit [http://predfull.com/](http://predfull.com/) to try online prediction__
 
 The first model for predicting complete tandem mass spectra from peptides sequences, using a deep CNN neural network trained on over 2 million experimental spectra.
 
+Free for academic uses.
+
 ## Update History
 
 * 2022.05.19: Support input peptide of any length
