@@ -160,7 +160,7 @@ def preprocessor(batch):
 
 
 # read inputs
-def parse_spectra(sps):
+def parse_spectra(sps, spec_type=3):
     # ratio constants for NCE
     cr = {1: 1, 2: 0.9, 3: 0.85, 4: 0.8, 5: 0.75, 6: 0.75, 7: 0.75, 8: 0.75}
 
@@ -200,19 +200,30 @@ def parse_spectra(sps):
         it = sp["intensity array"]
 
         db.append(
-            {"pep": pep, "charge": c, "mass": mass, "mz": mz, "it": it, "nce": hcd}
+            {
+                "pep": pep,
+                "charge": c,
+                "mass": mass,
+                "mz": mz,
+                "it": it,
+                "nce": hcd,
+                "type": spec_type,
+            }
         )
 
     return db
 
 
-def readmgf(fn):
+spec_types = {"unknown": 0, "cid": 1, "etd": 2, "hcd": 3, "ethcd": 4, "etcid": 5}
+
+
+def readmgf(fn, type="hcd"):
     file = open(fn, "r")
     data = mgf.read(
         file, convert_arrays=1, read_charges=False, dtype="float32", use_index=False
     )
 
-    codes = parse_spectra(data)
+    codes = parse_spectra(data, spec_type=spec_types[type])
     file.close()
     return codes
 
@@ -335,7 +346,7 @@ print(pm.summary())
 
 
 print("Reading mgf...", args.mgf)
-spectra = readmgf(args.mgf)
+spectra = readmgf(args.mgf, type="hcd")
 
 y = [
     spectrum2vector(sp["mz"], sp["it"], sp["mass"], BIN_SIZE, sp["charge"])
