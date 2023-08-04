@@ -79,8 +79,8 @@ ave_mass = {
     "V": 99.1326,
 }
 
-Alist = list("ACDEFGHIKLMNPQRSTVWY")
-encoding_dimension = len(Alist) + 2
+Alist = list("ACDEFGHIKLMNPQRSTVWYZ")
+ENCODE_DIMENSION = len(Alist) + 3
 
 charMap = {"@": 0, "[": 21}
 for i, a in enumerate(Alist):
@@ -112,7 +112,7 @@ def fastmass(pep, ion_type, charge, mod=None, cam=True):
 
 
 INPUT_LENGTH = MAX_PEPTIDE_LENGTH + 2
-INPUT_DIMENSION = encoding_dimension + 2 + 3
+INPUT_DIMENSION = ENCODE_DIMENSION + 2 + 3
 META_SHAPE = (3, 30)
 
 
@@ -121,12 +121,12 @@ def embed(spectrum, embedding, mass_scale=200):
     pep = spectrum["pep"]
     pep = pep.replace("L", "I")
 
-    embedding[len(pep)][encoding_dimension - 1] = 1  # ending pos
+    embedding[len(pep)][ENCODE_DIMENSION - 1] = 1  # ending pos
     for i, aa in enumerate(pep):
         embedding[i][charMap[aa]] = 1  # 1 - 20
-        embedding[i][encoding_dimension] = mono[aa] / mass_scale
+        embedding[i][ENCODE_DIMENSION] = mono[aa] / mass_scale
 
-    embedding[: len(pep), encoding_dimension + 1] = (
+    embedding[: len(pep), ENCODE_DIMENSION + 1] = (
         np.arange(len(pep)) / LENGTH_SCALE
     )  # position info
 
